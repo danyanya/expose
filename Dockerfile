@@ -1,5 +1,5 @@
 FROM centurylink/ca-certs
 
-ADD ./expose /usr/bin/expose
+ADD expose /
 
-ENTRYPOINT [ "/usr/bin/expose" ]
+ENTRYPOINT [ "/expose" ]
