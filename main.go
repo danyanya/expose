@@ -54,16 +54,20 @@ func (ph *proxyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	host := r.Host
 	a := strings.Split(host, ".")
 	mac := a[0]
+	fmt.Println(r.URL, mac)
+
 	host, err := findHost(db, mac) // be care with concurency
 	if host == "" {
 		host = "empty"
 	}
 	if err != nil {
+		fmt.Println(r.URL, mac, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte("502: Error with " + host + " host"))
 		return
 	}
-	fmt.Println(r.URL, mac)
+
+	fmt.Println(r.URL, mac, host)
 
 	// if nil - create new proxy
 	if ph.p[mac] == nil {
@@ -100,12 +104,13 @@ func findHost(db *mongo.DB, mac string) (string, error) {
 		"_id": mongo.M{
 			"$regex": mac,
 		},
-		"connected": true,
+		// "connected": true,
 		"state.l2tp_state.tunnel_type": mongo.M{
 			"$regex": "ipsec",
 		},
 	}
 	var cpe = cpeHost{}
+	fmt.Println(q)
 	var err = db.FindWithQueryOne(coll, q, &cpe)
 	return cpe.State.L2TPConfig.Addr, err
 }
